@@ -11,8 +11,8 @@ private[instances] trait ThriftEnumFormat {
     }
   }
 
-  def thriftEnumWrites[A <: ThriftEnum](originalName: A => String): Writes[A] = Writes { enum =>
-    JsString(originalName(enum))
+  def thriftEnumWrites[A <: ThriftEnum]: Writes[A] = Writes { enum =>
+    JsString(enum.originalName)
   }
 }
 

@@ -13,5 +13,5 @@ trait ComponentTypeInstances extends ThriftEnumFormat {
 
   implicit val componentTypeReads: Reads[ComponentType] = thriftEnumReads(ComponentType.valueOf)
 
-  implicit val componentTypeWrites: Writes[ComponentType] = thriftEnumWrites(_.originalName)
+  implicit val componentTypeWrites: Writes[ComponentType] = thriftEnumWrites[ComponentType]
 }
