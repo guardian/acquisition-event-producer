@@ -13,5 +13,5 @@ trait AcquisitionSourceInstances extends ThriftEnumFormat {
 
   implicit val acquisitionSourceReads: Reads[AcquisitionSource] = thriftEnumReads(AcquisitionSource.valueOf)
 
-  implicit val acquisitionSourceWrites: Writes[AcquisitionSource] = thriftEnumWrites(_.originalName)
+  implicit val acquisitionSourceWrites: Writes[AcquisitionSource] = thriftEnumWrites[AcquisitionSource]
 }
