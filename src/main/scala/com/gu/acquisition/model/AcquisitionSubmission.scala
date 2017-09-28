@@ -4,7 +4,7 @@ import ophan.thrift.event.Acquisition
 import play.api.libs.json.{Reads, Writes, Json => PlayJson}
 import simulacrum.typeclass
 
-case class OphanIds(browserId: Option[String], pageviewId: String, visitId: Option[String])
+case class OphanIds(pageviewId: String, visitId: Option[String], browserId: Option[String])
 
 object OphanIds {
   import io.circe._
