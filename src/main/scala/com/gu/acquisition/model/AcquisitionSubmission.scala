@@ -1,5 +1,7 @@
 package com.gu.acquisition.model
 
+import com.gu.acquisition.services.OphanServiceError
+import com.gu.acquisition.services.OphanServiceError.SubmissionBuildError
 import ophan.thrift.event.Acquisition
 import play.api.libs.json.{Reads, Writes, Json => PlayJson}
 import simulacrum.typeclass
@@ -22,6 +24,20 @@ object OphanIds {
   */
 case class AcquisitionSubmission(ophanIds: OphanIds, acquisition: Acquisition)
 
+object AcquisitionSubmission {
+
+  implicit val defaultAcquisitionSubmissionBuilder: AcquisitionSubmissionBuilder[AcquisitionSubmission] =
+    new AcquisitionSubmissionBuilder[AcquisitionSubmission] {
+      import cats.syntax.either._
+
+      override def buildOphanIds(a: AcquisitionSubmission): Either[String, OphanIds] =
+        Either.right(a.ophanIds)
+
+      override def buildAcquisition(a: AcquisitionSubmission): Either[String, Acquisition] =
+        Either.right(a.acquisition)
+    }
+}
+
 /**
   * Type class for creating an acquisition submission from an arbitrary data type.
   */
@@ -33,9 +49,9 @@ case class AcquisitionSubmission(ophanIds: OphanIds, acquisition: Acquisition)
 
   def buildAcquisition(a: A): Either[String, Acquisition]
 
-  def asAcquisitionSubmission(a: A): Either[String, AcquisitionSubmission] =
-    for {
+  def asAcquisitionSubmission(a: A): Either[OphanServiceError, AcquisitionSubmission] =
+    (for {
       ophanIds <- buildOphanIds(a)
       acquisition <- buildAcquisition(a)
-    } yield AcquisitionSubmission(ophanIds, acquisition)
+    } yield AcquisitionSubmission(ophanIds, acquisition)).leftMap(SubmissionBuildError)
 }
