@@ -8,6 +8,7 @@ import akka.http.scaladsl.model.Uri.Query
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.model.headers.{Cookie, HttpCookiePair}
 import akka.stream.Materializer
+import com.gu.acquisition.model.AcquisitionSubmission
 
 import scala.collection.immutable.Seq
 import scala.concurrent.{ExecutionContext, Future}
@@ -29,18 +30,17 @@ class OphanService(val endpoint: Uri)(implicit system: ActorSystem, materializer
 
   private val additionalEndpoint = endpoint.copy(path = Uri.Path("/a.gif"))
 
-  private def buildRequest(
-      acquisition: Acquisition,
-      viewId: String,
-      browserId: Option[String],
-      visitId: Option[String]
-  ): HttpRequest = {
+  private def buildRequest(submission: AcquisitionSubmission): HttpRequest = {
     import com.gu.acquisition.instances.acquisition._
     import io.circe.syntax._
+    import submission._
 
-    val params = Query("viewId" -> viewId, "acquisition" -> acquisition.asJson.noSpaces)
+    val params = Query("viewId" -> ophanIds.pageviewId, "acquisition" -> acquisition.asJson.noSpaces)
 
-    val cookies = List(browserId.map(HttpCookiePair("bwid", _)), visitId.map(HttpCookiePair("vsid", _))).flatten
+    val cookies = List(
+      ophanIds.browserId.map(HttpCookiePair("bwid", _)),
+      ophanIds.visitId.map(HttpCookiePair("vsid", _))
+    ).flatten
 
     HttpRequest(
       uri = additionalEndpoint.withQuery(params),
@@ -72,12 +72,9 @@ class OphanService(val endpoint: Uri)(implicit system: ActorSystem, materializer
     * If possible they should be included.
     */
   def submit(
-      acquisition: Acquisition,
-      viewId: String,
-      browserId: Option[String],
-      visitId: Option[String]
+      submission: AcquisitionSubmission
   )(implicit ec: ExecutionContext): EitherT[Future, OphanServiceError, HttpResponse] = {
-    val request = buildRequest(acquisition, viewId, browserId, visitId)
+    val request = buildRequest(submission)
     executeRequest(request)
   }
 }
