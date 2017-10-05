@@ -10,6 +10,7 @@ import com.gu.acquisition.typeclasses.AcquisitionSubmissionBuilder
 import okhttp3._
 
 import scala.concurrent.{ExecutionContext, Future, Promise}
+import scala.util.control.NonFatal
 
 /**
   * Build an acquisition submission, and submit it to the Ophan endpoint specified in the class constructor.
@@ -57,9 +58,20 @@ class DefaultOphanService(val endpoint: HttpUrl)(implicit client: OkHttpClient)
       override def onFailure(call: Call, e: IOException): Unit =
         p.success(Left(NetworkFailure(e)))
 
+      private def close(response: Response): Unit =
+        try {
+          response.close()
+        } catch {
+          case NonFatal(_) =>
+        }
+
       override def onResponse(call: Call, response: Response): Unit =
-        if (response.isSuccessful) p.success(Right(data.submission))
-        else p.success(Left(ResponseUnsuccessful(data.request, response)))
+        try {
+          if (response.isSuccessful) p.success(Right(data.submission))
+          else p.success(Left(ResponseUnsuccessful(data.request, response)))
+        } finally {
+          close(response)
+        }
     })
 
     EitherT(p.future)
