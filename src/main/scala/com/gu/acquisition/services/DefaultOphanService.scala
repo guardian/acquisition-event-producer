@@ -1,6 +1,7 @@
 package com.gu.acquisition.services
 
 import java.io.IOException
+import java.net.URLEncoder
 
 import cats.data.EitherT
 import com.gu.acquisition.model.AcquisitionSubmission
@@ -19,8 +20,6 @@ class DefaultOphanService(val endpoint: HttpUrl)(implicit client: OkHttpClient)
   import DefaultOphanService._
   import OphanServiceError._
 
-  private val additionalEndpointBuilder = endpoint.newBuilder().addPathSegment("a.gif")
-
   private def cookieValue(visitId: Option[String], browserId: Option[String]): String =
     List(visitId.map(("vsid", _)), browserId.map(("bwid", _))).flatten
       .map { case (name, value) => name + "=" + value }
@@ -32,9 +31,13 @@ class DefaultOphanService(val endpoint: HttpUrl)(implicit client: OkHttpClient)
     import io.circe.syntax._
     import submission._
 
-    val url = additionalEndpointBuilder
-      .addQueryParameter("viewId", ophanIds.pageviewId)
-      .addQueryParameter("acquisition" , acquisition.asJson.noSpaces)
+    val url = endpoint.newBuilder()
+      .addPathSegment("a.gif")
+      // Checked against a local Ophan instance that the default Ok HTTP encoding was ok,
+      // however, until Ophan is upgraded, encode reserved characters as specified by RFC 3986.
+      // More more info, see: https://github.com/guardian/contributions-frontend/pull/295
+      .addEncodedQueryParameter("viewId", utf8Encode(ophanIds.pageviewId))
+      .addEncodedQueryParameter("acquisition" , utf8Encode(acquisition.asJson.noSpaces))
       .build()
 
     val request = new Request.Builder()
@@ -75,5 +78,7 @@ class DefaultOphanService(val endpoint: HttpUrl)(implicit client: OkHttpClient)
 object DefaultOphanService {
 
   private[services] case class RequestData(request: Request, submission: AcquisitionSubmission)
+
+  private def utf8Encode(data: String): String = URLEncoder.encode(data, "UTF-8")
 }
 

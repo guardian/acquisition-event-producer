@@ -17,7 +17,9 @@ object OphanServiceError {
   }
 
   case class ResponseUnsuccessful(failedResponse: Response) extends OphanServiceError {
-    override def getMessage: String = s"Ophan HTTP request failed: ${failedResponse.code}"
+    override def getMessage: String = {
+      s"Ophan HTTP request failed: ${failedResponse.code}"
+    }
   }
 }
 
