@@ -20,7 +20,7 @@ class DefaultOphanServiceSpec extends WordSpecLike with Matchers {
       amount = 20d,
       amountInGBP = None,
       paymentProvider = Some(PaymentProvider.Stripe),
-      campaignCode = None,
+      campaignCode = Some(Set("FAKE_ACQUISITION_EVENT")),
       abTests = Some(AbTestInfo(Set(AbTest("test_name", "variant_name")))),
       countryCode = Some("US"),
       referrerPageViewId = None,
@@ -43,8 +43,7 @@ class DefaultOphanServiceSpec extends WordSpecLike with Matchers {
         request.header("Cookie") shouldEqual "vsid=visitId;bwid=browserId"
 
         request.url().url().toString shouldEqual
-          // Reserved characters as specified by RFC-3986 encoded in query string.
-          "https://ophan.theguardian.com/a.gif?viewId=pageviewId&acquisition=%7B%22product%22%3A%22CONTRIBUTION%22%2C%22paymentFrequency%22%3A%22ONE_OFF%22%2C%22currency%22%3A%22GBP%22%2C%22amount%22%3A20.0%2C%22paymentProvider%22%3A%22STRIPE%22%2C%22abTests%22%3A%7B%22tests%22%3A%5B%7B%22name%22%3A%22test_name%22%2C%22variant%22%3A%22variant_name%22%7D%5D%7D%2C%22countryCode%22%3A%22US%22%7D"
+          "https://ophan.theguardian.com/a.gif?viewId=pageviewId&acquisition={%22product%22:%22CONTRIBUTION%22,%22paymentFrequency%22:%22ONE_OFF%22,%22currency%22:%22GBP%22,%22amount%22:20.0,%22paymentProvider%22:%22STRIPE%22,%22campaignCode%22:[%22FAKE_ACQUISITION_EVENT%22],%22abTests%22:{%22tests%22:[{%22name%22:%22test_name%22,%22variant%22:%22variant_name%22}]},%22countryCode%22:%22US%22}"
       }
 
       // Check request is as expected

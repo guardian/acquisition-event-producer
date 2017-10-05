@@ -34,11 +34,8 @@ class DefaultOphanService(val endpoint: HttpUrl)(implicit client: OkHttpClient)
 
     val url = endpoint.newBuilder()
       .addPathSegment("a.gif")
-      // Checked against a local Ophan instance that the default Ok HTTP encoding was ok,
-      // however, until Ophan is upgraded, encode reserved characters as specified by RFC 3986 to be safe.
-      // For more info, see: https://github.com/guardian/contributions-frontend/pull/295
-      .addEncodedQueryParameter("viewId", utf8Encode(ophanIds.pageviewId))
-      .addEncodedQueryParameter("acquisition" , utf8Encode(acquisition.asJson.noSpaces))
+      .addQueryParameter("viewId", ophanIds.pageviewId)
+      .addQueryParameter("acquisition" , acquisition.asJson.noSpaces)
       .build()
 
     val request = new Request.Builder()
@@ -91,7 +88,5 @@ class DefaultOphanService(val endpoint: HttpUrl)(implicit client: OkHttpClient)
 object DefaultOphanService {
 
   private[services] case class RequestData(request: Request, submission: AcquisitionSubmission)
-
-  private def utf8Encode(data: String): String = URLEncoder.encode(data, "UTF-8")
 }
 
