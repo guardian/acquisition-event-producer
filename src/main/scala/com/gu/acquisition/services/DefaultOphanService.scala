@@ -1,7 +1,6 @@
 package com.gu.acquisition.services
 
 import java.io.IOException
-import java.net.URLEncoder
 
 import cats.data.EitherT
 import com.gu.acquisition.model.AcquisitionSubmission
