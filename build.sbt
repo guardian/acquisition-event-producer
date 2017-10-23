@@ -7,8 +7,6 @@ scalaVersion := "2.11.11"
 
 addCompilerPlugin("org.scalamacros" % "paradise" % "2.1.0" cross CrossVersion.full)
 
-resolvers += Resolver.bintrayRepo("guardian", "ophan")
-
 libraryDependencies ++= Seq(
   "ch.qos.logback" % "logback-classic" % "1.2.3",
   "com.github.mpilquist" %% "simulacrum" % "0.10.0",
