@@ -7,7 +7,8 @@ jobs:
     working_directory: ~/repo
 
     environment:
-      JVM_OPTS: -Xmx3200m
+      JVM_OPTS: -Xmx3200m -Xmax-classfile-name 256
+
       TERM: dumb
     
     steps:
@@ -34,7 +35,7 @@ jobs:
     working_directory: ~/repo
 
     environment:
-      JVM_OPTS: -Xmx3200m
+      JVM_OPTS: -Xmx3200m -Xmax-classfile-name 256
       TERM: dumb
     
     steps:
