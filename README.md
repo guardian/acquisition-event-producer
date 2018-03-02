@@ -22,6 +22,6 @@ Create an instance of `AcquisitionSubmissionBuilder` in your project. Pass this 
 
 Please note since March 2018 and version 4.x.x the library has been upgraded to use Scala 2.12.
 
-play-json 2.5.x and 2.4.x has no support for Scala 2.12 therefore play24 are play25 have been removed from he build.
+play-json 2.5.x and 2.4.x has no support for Scala 2.12 therefore play24 are play25 have been removed from the build.
 
 More info: https://mvnrepository.com/artifact/com.typesafe.play/play-json
