@@ -7,11 +7,12 @@ A tool to submit Acquisition events to Ophan.
 ### in Play projects
 Add a dependency on the package that corresponds to your version of Play:
 
-`libraryDependencies += "com.gu" %% "acquisition-event-producer-play24" % "2.0.4"`
+`libraryDependencies += "com.gu" %% "acquisition-event-producer-play24" % "3.0.0"`
 
-`libraryDependencies += "com.gu" %% "acquisition-event-producer-play25" % "2.0.4"`
+`libraryDependencies += "com.gu" %% "acquisition-event-producer-play25" % "3.0.0"`
 
-`libraryDependencies += "com.gu" %% "acquisition-event-producer-play26" % "2.0.4"`
+**Play 2.4 and 2.5 are only supported up to version 3.x.x** (see Scala 2.12 upgrade warnings below)
+`libraryDependencies += "com.gu" %% "acquisition-event-producer-play26" % "4.0.0"`
 
 ### in projects that don't use Play
 Import any of the above three projects - the same Circe encoders/decoders are included in each one.
