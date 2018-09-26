@@ -1,42 +1,36 @@
 package com.gu.acquisition.services
 
-import com.gu.acquisition.model.{AcquisitionSubmission, SyntheticPageviewId}
-import com.gu.acquisition.services.AnalyticsService.RequestData
-import okhttp3._
+import cats.data.EitherT
+import com.gu.acquisition.model.AcquisitionSubmission
+import com.gu.acquisition.model.errors.OphanServiceError
+import com.gu.acquisition.typeclasses.AcquisitionSubmissionBuilder
+import okhttp3.{HttpUrl, OkHttpClient}
+
+import scala.concurrent.{ExecutionContext, Future}
 
 /**
-  * Build an acquisition submission, and submit it to Ophan.
-  * Uses OkHttp for executing the Http request.
+  * Service for sending acquisition events to Ophan.
   */
-private [acquisition] class OphanService(implicit client: OkHttpClient)
-  extends AnalyticsService {
+trait OphanService {
 
-  private val endpoint: HttpUrl = HttpUrl.parse("https://ophan.theguardian.com")
-
-  private def cookieValue(visitId: Option[String], browserId: Option[String]): String =
-    List(visitId.map(("vsid", _)), browserId.map(("bwid", _))).flatten
-      .map { case (name, value) => name + "=" + value }
-      .mkString(";")
-
-  override def buildRequest(submission: AcquisitionSubmission): RequestData = {
-    import com.gu.acquisition.instances.acquisition._
-    import io.circe.syntax._
-    import submission._
-
-    val url = endpoint.newBuilder()
-      .addPathSegment("a.gif")
-      .addQueryParameter("viewId", ophanIds.pageviewId.getOrElse(SyntheticPageviewId.generate))
-      .addQueryParameter("acquisition" , acquisition.asJson.noSpaces)
-      .build()
-
-    val request = new Request.Builder()
-      .url(url)
-      .addHeader("Cookie", cookieValue(ophanIds.visitId, ophanIds.browserId))
-      .build()
-
-    RequestData(request, submission)
-  }
-
-
+  def submit[A : AcquisitionSubmissionBuilder](a: A)(
+    implicit ec: ExecutionContext): EitherT[Future, OphanServiceError, AcquisitionSubmission]
 }
 
+object OphanService {
+
+  val prodEndpoint: HttpUrl = HttpUrl.parse("https://ophan.theguardian.com")
+
+  def prod(implicit client: OkHttpClient): DefaultOphanService =
+    new DefaultOphanService(prodEndpoint)
+
+  def apply(endpoint: HttpUrl)(implicit client: OkHttpClient): DefaultOphanService =
+    new DefaultOphanService(endpoint)
+
+  def apply(endpoint: String)(implicit client: OkHttpClient): Either[InvalidUrl, DefaultOphanService] = {
+    val parsedEndpoint = HttpUrl.parse(endpoint)
+    if (parsedEndpoint == null) Left(InvalidUrl(endpoint)) else Right(OphanService(parsedEndpoint))
+  }
+
+  case class InvalidUrl(url: String) extends Exception
+}
