@@ -1,5 +1,7 @@
 import sbt.Keys.organization
 
+resolvers += Resolver.sonatypeRepo("releases")
+
 val commonSettings: Seq[SettingsDefinition] = Seq(
   scalaVersion := "2.12.4",
 
@@ -14,7 +16,8 @@ val commonSettings: Seq[SettingsDefinition] = Seq(
     "org.scalatest" %% "scalatest" % "3.0.1" % "test",
     "org.scalactic" %% "scalactic" % "3.0.1",
     "org.typelevel" %% "cats-core" % "1.0.1",
-    compilerPlugin("org.scalamacros" % "paradise" % "2.1.0" cross CrossVersion.full)
+    compilerPlugin("org.scalamacros" % "paradise" % "2.1.0" cross CrossVersion.full),
+    compilerPlugin("org.spire-math" %% "kind-projector" % "0.9.8")
   ),
 
   licenses += ("MIT", url("http://opensource.org/licenses/MIT")),

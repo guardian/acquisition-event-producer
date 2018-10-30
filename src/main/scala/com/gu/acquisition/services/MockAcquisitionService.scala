@@ -13,13 +13,13 @@ import scala.concurrent.{ExecutionContext, Future}
 object MockAcquisitionService extends AcquisitionService {
 
   override def submit[A: AcquisitionSubmissionBuilder](a: A)(
-    implicit ec: ExecutionContext): EitherT[Future, List[AnalyticsServiceError], AcquisitionSubmission] = {
+    implicit ec: ExecutionContext): EitherT[Future, AnalyticsServiceError, AcquisitionSubmission] = {
 
     import cats.instances.future._
     import cats.syntax.either._
     import AcquisitionSubmissionBuilder.ops._
 
     // Left map to lift the build error into a processing error.
-    a.asAcquisitionSubmission.toEitherT.leftMap(err => List(err))
+    a.asAcquisitionSubmission.toEitherT.leftMap(identity[AnalyticsServiceError])
   }
 }

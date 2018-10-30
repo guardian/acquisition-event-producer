@@ -9,11 +9,11 @@ import okhttp3.OkHttpClient
 import scala.concurrent.{ExecutionContext, Future}
 
 trait AcquisitionService {
-  def submit[A : AcquisitionSubmissionBuilder](a: A)(implicit ec: ExecutionContext): EitherT[Future, List[AnalyticsServiceError], AcquisitionSubmission]
+
+  def submit[A : AcquisitionSubmissionBuilder](a: A)(implicit ec: ExecutionContext): EitherT[Future, AnalyticsServiceError, AcquisitionSubmission]
 }
 
 object AcquisitionService {
 
-  def prod(implicit client: OkHttpClient): DefaultAcquisitionService =
-    new DefaultAcquisitionService()
+  def prod(implicit client: OkHttpClient): DefaultAcquisitionService = DefaultAcquisitionService()
 }

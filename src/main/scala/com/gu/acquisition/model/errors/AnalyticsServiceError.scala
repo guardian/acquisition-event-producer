@@ -2,6 +2,7 @@ package com.gu.acquisition.model.errors
 
 import java.io.IOException
 
+import cats.data.NonEmptyList
 import okhttp3.{Request, Response}
 
 sealed trait AnalyticsServiceError extends Throwable
@@ -17,9 +18,12 @@ object AnalyticsServiceError {
   }
 
   case class ResponseUnsuccessful(request: Request, failedResponse: Response) extends AnalyticsServiceError {
-    override def getMessage: String = {
-      s"HTTP request failed: ${failedResponse.code}"
-    }
+    override def getMessage: String = s"HTTP request failed: ${failedResponse.code}"
+  }
+
+  // TODO: better name
+  case class Collection(errors: NonEmptyList[AnalyticsServiceError]) extends AnalyticsServiceError {
+    override def getMessage: String = errors.toList.mkString(" and ")
   }
 }
 

@@ -1,35 +1,40 @@
 package com.gu.acquisition.services
 
-import cats.data.EitherT
+import cats.Applicative
+import cats.data.{EitherT, Nested, NonEmptyList, Validated}
+import cats.implicits._
 import com.gu.acquisition.model.AcquisitionSubmission
 import com.gu.acquisition.model.errors.AnalyticsServiceError
 import com.gu.acquisition.typeclasses.AcquisitionSubmissionBuilder
 import okhttp3.OkHttpClient
 
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ExecutionContext, Future}
 
-class DefaultAcquisitionService(implicit client: OkHttpClient) extends AcquisitionService {
-  private val ophanService = new OphanService()
-  private val gAService = new GAService()
-  override def submit[A: AcquisitionSubmissionBuilder](a: A)(implicit ec: ExecutionContext) = {
-    val ov = ophanService.submit(a).value
-    val gv = gAService.submit(a).value
-    val result = for {
-      o <- ov
-      g <- gv
-    } yield mergeEithers(o, g)
-    EitherT(result)
-  }
+class DefaultAcquisitionService private (services: List[AcquisitionService])(implicit client: OkHttpClient) extends AcquisitionService {
 
-  // Take 2 Eithers of type Either[AnalyticsServiceError, AcquisitionSubmission] and return Right(AcquisitionSubmission) if they both succeed
-  // or a Left(List[AnalyticsServiceError]) if one or both submissions fail.
-  def mergeEithers(e1: Either[AnalyticsServiceError, AcquisitionSubmission], e2: Either[AnalyticsServiceError, AcquisitionSubmission]): Either[List[AnalyticsServiceError], AcquisitionSubmission] = {
-    val errors = e1.swap.toSeq ++ e2.swap.toSeq
-    val submission = e1.toSeq ++ e2.toSeq
-    if (errors == Nil) {
-      Right(submission.head)
-    } else {
-      Left(errors.toList)
-    }
+  import DefaultAcquisitionService._
+
+  override def submit[A : AcquisitionSubmissionBuilder](a: A)(implicit ec: ExecutionContext): EitherT[Future, AnalyticsServiceError, AcquisitionSubmission] = {
+    // Make the requests concurrently, accumulating any errors.
+    // Sadly the type parameters are required by the Scala compiler :(
+    val result = services.traverse[ValidatedT[Future, NonEmptyList[AnalyticsServiceError], ?], AcquisitionSubmission](_.submit(a).toNestedValidatedNel)
+    EitherT(result.value.map(_.toEither)).bimap(AnalyticsServiceError.Collection, _.head)
   }
+}
+
+object DefaultAcquisitionService {
+
+  def apply()(implicit client: OkHttpClient): DefaultAcquisitionService =
+    new DefaultAcquisitionService(List(new OphanService, new GAService))
+
+  // Utility type alias.
+  // There is no ValidatedT data type in cats,
+  // since Validated is an applicative,
+  // and applicatives stack - obviously! ;)
+  // https://github.com/typelevel/cats/issues/1818
+  type ValidatedT[F[_], A, B] = Nested[F, Validated[A, ?], B]
+
+  // For some reason, compiler can't find an implicit applicative without creating this utility method (?)
+  implicit def validatedTApplicative(implicit ec: ExecutionContext): Applicative[ValidatedT[Future, NonEmptyList[AnalyticsServiceError], ?]] =
+    Nested.catsDataApplicativeForNested[Future, Validated[NonEmptyList[AnalyticsServiceError], ?]]
 }
