@@ -14,6 +14,7 @@ val commonSettings: Seq[SettingsDefinition] = Seq(
     "com.typesafe.scala-logging" %% "scala-logging" % "3.7.2",
     "io.circe" %% "circe-core" % "0.9.1",
     "org.scalatest" %% "scalatest" % "3.0.1" % "test",
+    "org.mockito" % "mockito-all" % "1.10.19" % "test",
     "org.scalactic" %% "scalactic" % "3.0.1",
     "org.typelevel" %% "cats-core" % "1.0.1",
     compilerPlugin("org.scalamacros" % "paradise" % "2.1.0" cross CrossVersion.full),
@@ -24,7 +25,10 @@ val commonSettings: Seq[SettingsDefinition] = Seq(
   organization := "com.gu",
   bintrayOrganization := Some("guardian"),
   bintrayRepository := "ophan",
-  publishMavenStyle := true
+  publishMavenStyle := true,
+  // show full stack traces - useful for debugging failed tests
+  // https://stackoverflow.com/questions/7237824/how-can-i-get-complete-stacktraces-for-exceptions-thrown-in-tests-when-using-sbt
+  testOptions in Test += Tests.Argument("-oF")
 )
 
 // This project is compiled against multiple versions of `play-json` to aid compatibility.

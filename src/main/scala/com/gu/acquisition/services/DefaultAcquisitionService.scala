@@ -10,7 +10,7 @@ import okhttp3.OkHttpClient
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class DefaultAcquisitionService private (services: List[AcquisitionService])(implicit client: OkHttpClient) extends AcquisitionService {
+class DefaultAcquisitionService private[services] (services: List[AcquisitionService])(implicit client: OkHttpClient) extends AcquisitionService {
 
   import DefaultAcquisitionService._
 
@@ -18,7 +18,10 @@ class DefaultAcquisitionService private (services: List[AcquisitionService])(imp
     // Make the requests concurrently, accumulating any errors.
     // Sadly the type parameters are required by the Scala compiler :(
     val result = services.traverse[ValidatedT[Future, NonEmptyList[AnalyticsServiceError], ?], AcquisitionSubmission](_.submit(a).toNestedValidatedNel)
-    EitherT(result.value.map(_.toEither)).bimap(AnalyticsServiceError.Collection, _.head)
+    EitherT(result.value.map(_.toEither)).bimap(
+      errors => if (errors.size == 1) errors.head else AnalyticsServiceError.Collection(errors),
+      _.head
+    )
   }
 }
 
