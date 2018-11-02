@@ -18,7 +18,11 @@ case class ReferrerAcquisitionData(
     source: Option[AcquisitionSource],
     abTest: Option[AbTest], //Deprecated, please use abTests
     abTests: Option[Set[AbTest]],
-    queryParameters: Option[Set[QueryParameter]]
+    queryParameters: Option[Set[QueryParameter]],
+    hostname: Option[String],
+    gaClientId: Option[String],
+    userAgent: Option[String],
+    ipAddress: Option[String]
 )
 
 object ReferrerAcquisitionData {
