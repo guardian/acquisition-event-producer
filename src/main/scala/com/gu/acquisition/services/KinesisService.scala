@@ -33,6 +33,7 @@ private [acquisition] class KinesisService(credentialsProvider: AWSCredentialsPr
 
       new PutRecordRequest()
         .withStreamName(streamName)
+        .withPartitionKey(acquisitionSubmission.acquisition.identityId.getOrElse(acquisitionSubmission.acquisition.amount.toString))
         .withData(buffer)
     }
 
