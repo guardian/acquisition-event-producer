@@ -10,7 +10,7 @@ import okhttp3.{HttpUrl, OkHttpClient}
 import scala.concurrent.ExecutionContext
 
 case class DefaultAcquisitionServiceConfig(
-  credentialsProvider: AWSCredentialsProviderChain,
+  credentialsProvider: Option[AWSCredentialsProviderChain],
   kinesisStreamName: String,
   ophanEndpoint: Option[HttpUrl] = None
 )

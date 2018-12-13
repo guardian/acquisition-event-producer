@@ -16,11 +16,14 @@ import com.gu.thrift.serializer.ThriftSerializer
 import scala.concurrent.{ExecutionContext, Future, Promise}
 import scala.util.control.NonFatal
 
-private [acquisition] class KinesisService(credentialsProvider: AWSCredentialsProviderChain, streamName: String, region: String = "eu-west-1") extends AnalyticsService {
+private [acquisition] class KinesisService(credentialsProvider: Option[AWSCredentialsProviderChain], streamName: String, region: String = "eu-west-1") extends AnalyticsService {
 
   private val kinesisClient = {
-    val builder = AmazonKinesisAsyncClientBuilder.standard()
-    builder.withCredentials(credentialsProvider).withRegion(region).build
+    val builder = AmazonKinesisAsyncClientBuilder.standard().withRegion(region)
+    credentialsProvider match {
+      case Some(provider) => builder.withCredentials(provider).build
+      case None => builder.build   //No credentials required for lambda
+    }
   }
 
   private def putAcquisition(acquisitionSubmission: AcquisitionSubmission): EitherT[Future, AnalyticsServiceError, AcquisitionSubmission] = {
