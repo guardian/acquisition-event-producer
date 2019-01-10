@@ -3,6 +3,7 @@ package com.gu.acquisition.services
 import java.nio.ByteBuffer
 
 import cats.data.EitherT
+import com.amazonaws.auth.AWSCredentialsProviderChain
 import com.amazonaws.handlers.AsyncHandler
 import com.amazonaws.services.kinesis.AmazonKinesisAsyncClientBuilder
 import com.amazonaws.services.kinesis.model.{PutRecordRequest, PutRecordResult}
@@ -11,11 +12,20 @@ import com.gu.acquisition.model.errors.AnalyticsServiceError
 import com.gu.acquisition.model.errors.AnalyticsServiceError.KinesisError
 import com.gu.acquisition.typeclasses.AcquisitionSubmissionBuilder
 import com.gu.thrift.serializer.ThriftSerializer
+import okhttp3.HttpUrl
 
 import scala.concurrent.{ExecutionContext, Future, Promise}
 import scala.util.control.NonFatal
 
-private [acquisition] class KinesisService(config: DefaultAcquisitionServiceConfig, region: String = "eu-west-1") extends AnalyticsService {
+sealed trait KinesisServiceConfig {
+  val kinesisStreamName: String
+}
+
+//Credentials provider is only required by the kinesis client when running in ec2 or locally
+case class Ec2OrLocalConfig(credentialsProvider: AWSCredentialsProviderChain, kinesisStreamName: String, ophanEndpoint: Option[HttpUrl] = None) extends KinesisServiceConfig
+case class LambdaConfig(kinesisStreamName: String) extends KinesisServiceConfig
+
+private [acquisition] class KinesisService(config: KinesisServiceConfig, region: String = "eu-west-1") extends AnalyticsService {
 
   private val kinesisClient = {
     val builder = AmazonKinesisAsyncClientBuilder.standard().withRegion(region)

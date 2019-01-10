@@ -14,10 +14,10 @@ trait AcquisitionService {
 
 object AcquisitionService {
 
-  def allServices(config: DefaultAcquisitionServiceConfig)(implicit client: OkHttpClient) = new DefaultAcquisitionService(List(
-    new OphanService(config.ophanEndpoint),
+  def allServices(kinesisConfig: KinesisServiceConfig, ophanEndpoint: Option[HttpUrl] = None)(implicit client: OkHttpClient) = new DefaultAcquisitionService(List(
+    new OphanService(ophanEndpoint),
     new GAService(),
-    new KinesisService(config)
+    new KinesisService(kinesisConfig)
   ))
 
   def noKinesis(ophanEndpoint: Option[HttpUrl])(implicit client: OkHttpClient) = new DefaultAcquisitionService(List(
