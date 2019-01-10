@@ -12,7 +12,7 @@ import org.scalatest.{AsyncWordSpecLike, Matchers}
 class DefaultAcquisitionServiceSpec extends AsyncWordSpecLike with Matchers with LazyLogging {
   implicit val client: OkHttpClient = new OkHttpClient()
 
-  private val service = AcquisitionService.prod(Ec2OrLocalConfig(
+  private val service = AcquisitionService.allServices(Ec2OrLocalConfig(
     credentialsProvider = new AWSCredentialsProviderChain(new EnvironmentVariableCredentialsProvider()),
     kinesisStreamName = "stream"
   ))
