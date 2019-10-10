@@ -16,7 +16,7 @@ val commonSettings: Seq[SettingsDefinition] = Seq(
     "org.scalactic" %% "scalactic" % "3.0.1",
     "org.typelevel" %% "cats-core" % "1.0.1",
     "com.amazonaws" % "aws-java-sdk-kinesis" % "1.11.465",
-    "com.gu" %% "thrift-serializer" % "3.0.0",
+    "com.gu" %% "thrift-serializer" % "4.0.2",
     compilerPlugin("org.scalamacros" % "paradise" % "2.1.0" cross CrossVersion.full)
   ),
 
@@ -41,4 +41,3 @@ lazy val root = (project in file("."))
     libraryDependencies ++= Seq("com.typesafe.play" %% "play-json" % "2.6.7"),
     name := "acquisition-event-producer-play26"
   )
-
