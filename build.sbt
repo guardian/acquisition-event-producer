@@ -1,4 +1,21 @@
 import sbt.Keys.organization
+import sbtrelease.ReleaseStateTransformations._
+
+val releaseSettings = Seq {
+  releaseProcess := Seq(
+    checkSnapshotDependencies,
+    inquireVersions,
+    runClean,
+    runTest,
+    setReleaseVersion,
+    commitReleaseVersion,
+    tagRelease,
+    publishArtifacts,
+    setNextVersion,
+    commitNextVersion,
+    pushChanges
+  )
+}
 
 val commonSettings: Seq[SettingsDefinition] = Seq(
   scalaVersion := "2.12.10",
