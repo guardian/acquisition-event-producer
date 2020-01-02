@@ -4,7 +4,7 @@ import cats.data.EitherT
 import com.gu.acquisition.model.AcquisitionSubmission
 import com.gu.acquisition.model.errors.AnalyticsServiceError
 import com.gu.acquisition.typeclasses.AcquisitionSubmissionBuilder
-import okhttp3.OkHttpClient
+import okhttp3.{HttpUrl, OkHttpClient}
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -14,6 +14,14 @@ trait AcquisitionService {
 
 object AcquisitionService {
 
-  def prod(config: DefaultAcquisitionServiceConfig)(implicit client: OkHttpClient): DefaultAcquisitionService =
-    new DefaultAcquisitionService(config)
+  def allServices(kinesisConfig: KinesisServiceConfig, ophanEndpoint: Option[HttpUrl] = None)(implicit client: OkHttpClient) = new DefaultAcquisitionService(List(
+    new OphanService(ophanEndpoint),
+    new GAService(),
+    new KinesisService(kinesisConfig)
+  ))
+
+  def noKinesis(ophanEndpoint: Option[HttpUrl])(implicit client: OkHttpClient) = new DefaultAcquisitionService(List(
+    new OphanService(ophanEndpoint),
+    new GAService()
+  ))
 }

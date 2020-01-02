@@ -1,39 +1,20 @@
 package com.gu.acquisition.services
 
 import cats.data.EitherT
-import com.amazonaws.auth.AWSCredentialsProviderChain
 import com.gu.acquisition.model.AcquisitionSubmission
 import com.gu.acquisition.model.errors.AnalyticsServiceError
 import com.gu.acquisition.typeclasses.AcquisitionSubmissionBuilder
-import okhttp3.{HttpUrl, OkHttpClient}
+import okhttp3.OkHttpClient
 
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ExecutionContext, Future}
 
-sealed trait DefaultAcquisitionServiceConfig {
-  val kinesisStreamName: String
-  val ophanEndpoint: Option[HttpUrl]
-}
-
-//Credentials provider is only required by the kinesis client when running in ec2 or locally
-case class Ec2OrLocalConfig(credentialsProvider: AWSCredentialsProviderChain, kinesisStreamName: String, ophanEndpoint: Option[HttpUrl] = None) extends DefaultAcquisitionServiceConfig
-
-case class LambdaConfig(kinesisStreamName: String, ophanEndpoint: Option[HttpUrl] = None) extends DefaultAcquisitionServiceConfig
-
-class DefaultAcquisitionService(config: DefaultAcquisitionServiceConfig)(implicit client: OkHttpClient) extends AcquisitionService {
-  private val ophanService = new OphanService(config.ophanEndpoint)
-  private val gAService = new GAService()
-  private val kinesisService = new KinesisService(config)
+class DefaultAcquisitionService(services: List[AnalyticsService])(implicit client: OkHttpClient) extends AcquisitionService {
 
   override def submit[A: AcquisitionSubmissionBuilder](a: A)(implicit ec: ExecutionContext) = {
-    val ov = ophanService.submit(a).value
-    val gv = gAService.submit(a).value
-    val kv = kinesisService.submit(a).value
-    val result = for {
-      o <- ov
-      g <- gv
-      k <- kv
-    } yield mergeEithers(List(o, g, k))
-    EitherT(result)
+    EitherT {
+      val submitOps = services.map(_.submit(a).value)
+      Future.sequence(submitOps).map(mergeEithers)
+    }
   }
 
   // Return the AcquisitionSubmission only if there are no errors, otherwise the full List[AnalyticsServiceError]
