@@ -3,6 +3,8 @@
 # acquisition event producer
 A tool to submit Acquisition events to Ophan.
 
+## NB. For the support platform this project has now been moved into the [support mono-repo](https://github.com/guardian/support-frontend). This repo is being left in place for reference and in case we want to release to Sonatype for other systems.
+
 ## usage 
 ### in Play projects
 Add a dependency on the package that corresponds to your version of Play:
